@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:proj/log.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'main.dart';
 import 'menu.dart';
 
 class Scientist {
@@ -47,12 +45,15 @@ class Scientist {
   }
 }
 
-
 class ApiService {
-  final String baseUrl = 'http://127.0.0.1:8000';
-
   Future<Scientist?> getScientist(String username) async {
-    final response = await http.get(Uri.parse('$baseUrl/scientist/$username/'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/scientist/$username/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'ngrok-skip-browser-warning': 'true'
+      },
+    );
     if (response.statusCode == 200) {
       final decodedResponse = utf8.decode(response.bodyBytes);
       return Scientist.fromJson(json.decode(decodedResponse));
@@ -68,6 +69,7 @@ class ApiService {
       Uri.parse('$baseUrl/scientist/register/'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
+        'ngrok-skip-browser-warning': 'true'
       },
       body: jsonEncode(scientist.toJson()),
     );
@@ -79,13 +81,13 @@ class ApiService {
       Uri.parse('$baseUrl/scientist/update/${scientist.username}/'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
+        'ngrok-skip-browser-warning': 'true'
       },
       body: jsonEncode(scientist.toJson()),
     );
     return response.statusCode == 200;
   }
 }
-
 
 class SettingsScreen extends StatefulWidget {
   final String username;
@@ -109,15 +111,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       Scientist? scientist = await _apiService.getScientist(widget.username);
       if (scientist == null) {
-        // Scientist does not exist, navigate to registration screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ScientistRegistrationScreen(username: widget.username),
+            builder: (context) =>
+                ScientistRegistrationScreen(username: widget.username),
           ),
         );
       } else {
-        // Scientist exists, navigate to update screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -126,28 +127,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     } catch (e) {
-      // Handle error
       print("Error fetching scientist: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Display a loading indicator while checking for the scientist
     return Scaffold(
       appBar: AppBar(
         title: const Text('Настройки',
-            style: TextStyle(fontSize: 32, color: Colors.white, fontFamily: "Raleway", fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                fontSize: 32,
+                color: Colors.white,
+                fontFamily: "Raleway",
+                fontWeight: FontWeight.bold)),
         backgroundColor: Colors.brown[300],
         toolbarHeight: 100,
         iconTheme: IconThemeData(color: Colors.white),
-
       ),
       body: Center(child: CircularProgressIndicator()),
     );
   }
 }
-
 
 class ScientistUpdateScreen extends StatefulWidget {
   final Scientist scientist;
@@ -181,21 +182,24 @@ class _ScientistUpdateScreenState extends State<ScientistUpdateScreen> {
               backgroundColor: Colors.brown[50],
               content: ListTile(
                 leading: Icon(Icons.check_circle, color: Colors.green),
-                title: Text('Вы успешно изменили данные.',
+                title: Text(
+                  'Вы успешно изменили данные.',
                 ),
               ),
               title: Text('Данные изменены'),
               actions: <Widget>[
                 MaterialButton(
                   color: Colors.brown,
-                  child: Text('OK', style: TextStyle(color: Colors.white),),
+                  child: Text(
+                    'OK',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   onPressed: () {
                     Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (context) => Menu()));
+                        MaterialPageRoute(builder: (context) => Menu()));
                   },
                 ),
               ],
@@ -211,7 +215,7 @@ class _ScientistUpdateScreenState extends State<ScientistUpdateScreen> {
                 title: Text('Ошибка'),
                 content: ListTile(
                   leading: Icon(Icons.error, color: Colors.red),
-                  title: Text('Проверьте данные'),
+                  title: Text('Заполните все поля'),
                 ),
                 actions: <Widget>[
                   MaterialButton(
@@ -221,11 +225,12 @@ class _ScientistUpdateScreenState extends State<ScientistUpdateScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     onPressed: () {
-                      Navigator.of(context).pop(); // Close the dialog
+                      Navigator.of(context).pop();
                     },
                   ),
                 ],
-              );});
+              );
+            });
       }
     }
   }
@@ -234,134 +239,146 @@ class _ScientistUpdateScreenState extends State<ScientistUpdateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.brown[300],
-      appBar: AppBar(
-        title: const Text('Настройки',
-            style: TextStyle(fontSize: 32, color: Colors.white, fontFamily: "Raleway", fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.brown[300],
-        toolbarHeight: 100,
-        iconTheme: IconThemeData(color: Colors.white),
-
-      ),
-      body: Column(children: [Expanded(child: Container(
-
-      width: double.infinity,
-    decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.only(
-    bottomLeft: Radius.circular(20),
-    bottomRight: Radius.circular(20),
-    topLeft: Radius.circular(20),
-    topRight: Radius.circular(20),
-    ),),
-    child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                initialValue: _scientist.authorInRussian,
-                decoration: InputDecoration(labelText: 'ФИО на русском',
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
-                  labelStyle: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400),),
-                onSaved: (value) {
-                  if (value != null) {
-                    _scientist?.authorInRussian = value;
-                  }
-                },
-              ),
-              TextFormField(
-                initialValue: _scientist.firstAuthor,
-                decoration: InputDecoration(labelText: 'ФИО на английском',
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
-                  labelStyle: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400),),
-                onSaved: (value) {
-        if (value != null) {
-        _scientist?.firstAuthor = value;
-        }
-        },
-              ),
-              TextFormField(
-                initialValue: _scientist.jobTitle,
-                decoration: InputDecoration(labelText: 'Должность',
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
-                  labelStyle: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400),),
-                onSaved: (value) {
-                  if (value != null) {
-                    _scientist?.jobTitle = value;
-                  }
-                },
-              ),
-              TextFormField(
-                initialValue: _scientist.relations,
-                decoration: InputDecoration(labelText: 'Тип трудовых отношений',
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
-                  labelStyle: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400),),
-                onSaved: (value) {
-                  if (value != null) {
-                    _scientist?.relations = value;
-                  }
-                },
-              ),
-              TextFormField(
-                initialValue: _scientist.scienceTitle,
-                decoration: InputDecoration(labelText: 'Научная степень',
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
-                  labelStyle: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400),
-                ),
-                onSaved: (value) {
-                  if (value != null) {
-                    _scientist?.scienceTitle = value;
-                  }
-                },
-              ),
-              SizedBox(height: 20,),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.brown, // Background color
-                  onPrimary: Colors.white, // Text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Rounded corners
-                  ),
-                ),
-                onPressed: _updateScientist,
-                child: Text('Сохранить'),
-              ),
-            ],
-          ),
+        appBar: AppBar(
+          title: const Text('Настройки',
+              style: TextStyle(
+                  fontSize: 32,
+                  color: Colors.white,
+                  fontFamily: "Raleway",
+                  fontWeight: FontWeight.bold)),
+          backgroundColor: Colors.brown[300],
+          toolbarHeight: 100,
+          iconTheme: IconThemeData(color: Colors.white),
         ),
-      ),
-    ))]));
+        body: Column(children: [
+          Expanded(
+              child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      initialValue: _scientist.authorInRussian,
+                      decoration: InputDecoration(
+                        labelText: 'ФИО на русском',
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.brown, width: 1.5)),
+                        labelStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onSaved: (value) {
+                        if (value != null) {
+                          _scientist?.authorInRussian = value;
+                        }
+                      },
+                    ),
+                    TextFormField(
+                      initialValue: _scientist.firstAuthor,
+                      decoration: InputDecoration(
+                        labelText: 'ФИО на английском',
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.brown, width: 1.5)),
+                        labelStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onSaved: (value) {
+                        if (value != null) {
+                          _scientist?.firstAuthor = value;
+                        }
+                      },
+                    ),
+                    TextFormField(
+                      initialValue: _scientist.jobTitle,
+                      decoration: InputDecoration(
+                        labelText: 'Должность',
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.brown, width: 1.5)),
+                        labelStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onSaved: (value) {
+                        if (value != null) {
+                          _scientist?.jobTitle = value;
+                        }
+                      },
+                    ),
+                    TextFormField(
+                      initialValue: _scientist.relations,
+                      decoration: InputDecoration(
+                        labelText: 'Тип трудовых отношений',
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.brown, width: 1.5)),
+                        labelStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onSaved: (value) {
+                        if (value != null) {
+                          _scientist?.relations = value;
+                        }
+                      },
+                    ),
+                    TextFormField(
+                      initialValue: _scientist.scienceTitle,
+                      decoration: InputDecoration(
+                        labelText: 'Научная степень',
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.brown, width: 1.5)),
+                        labelStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onSaved: (value) {
+                        if (value != null) {
+                          _scientist?.scienceTitle = value;
+                        }
+                      },
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.brown,
+                        onPrimary: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: _updateScientist,
+                      child: Text('Сохранить'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ))
+        ]));
   }
 }
 
@@ -371,10 +388,12 @@ class ScientistRegistrationScreen extends StatefulWidget {
   ScientistRegistrationScreen({required this.username});
 
   @override
-  _ScientistRegistrationScreenState createState() => _ScientistRegistrationScreenState();
+  _ScientistRegistrationScreenState createState() =>
+      _ScientistRegistrationScreenState();
 }
 
-class _ScientistRegistrationScreenState extends State<ScientistRegistrationScreen> {
+class _ScientistRegistrationScreenState
+    extends State<ScientistRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final ApiService _apiService = ApiService();
   late Scientist _scientist;
@@ -404,21 +423,24 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
               backgroundColor: Colors.brown[50],
               content: ListTile(
                 leading: Icon(Icons.check_circle, color: Colors.green),
-                title: Text('Вы успешно изменили данные.',
+                title: Text(
+                  'Вы успешно изменили данные.',
                 ),
               ),
               title: Text('Данные изменены'),
               actions: <Widget>[
                 MaterialButton(
                   color: Colors.brown,
-                  child: Text('OK', style: TextStyle(color: Colors.white),),
+                  child: Text(
+                    'OK',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   onPressed: () {
                     Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (context) => Menu()));
+                        MaterialPageRoute(builder: (context) => Menu()));
                   },
                 ),
               ],
@@ -426,7 +448,6 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
           },
         );
       } else {
-        // Show error message
         showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -445,11 +466,12 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
                       borderRadius: BorderRadius.circular(10),
                     ),
                     onPressed: () {
-                      Navigator.of(context).pop(); // Close the dialog
+                      Navigator.of(context).pop();
                     },
                   ),
                 ],
-              );});
+              );
+            });
       }
     }
   }
@@ -459,11 +481,14 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
     return Scaffold(
       appBar: AppBar(
         title: const Text('Заполнить информацию о себе',
-            style: TextStyle(fontSize: 32, color: Colors.white, fontFamily: "Raleway", fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                fontSize: 32,
+                color: Colors.white,
+                fontFamily: "Raleway",
+                fontWeight: FontWeight.bold)),
         backgroundColor: Colors.brown[300],
         toolbarHeight: 100,
         iconTheme: IconThemeData(color: Colors.white),
-
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -471,17 +496,16 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
           key: _formKey,
           child: Column(
             children: [
-
               TextFormField(
-                decoration: InputDecoration(labelText: 'ФИО на русском',
+                decoration: InputDecoration(
+                  labelText: 'ФИО на русском',
                   focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
+                      borderSide: BorderSide(color: Colors.brown, width: 1.5)),
                   labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.w400),),
+                      fontWeight: FontWeight.w400),
+                ),
                 onSaved: (value) {
                   if (value != null) {
                     _scientist?.authorInRussian = value;
@@ -489,15 +513,15 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'ФИО на английском',
+                decoration: InputDecoration(
+                  labelText: 'ФИО на английском',
                   focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
+                      borderSide: BorderSide(color: Colors.brown, width: 1.5)),
                   labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.w400),),
+                      fontWeight: FontWeight.w400),
+                ),
                 onSaved: (value) {
                   if (value != null) {
                     _scientist?.firstAuthor = value;
@@ -505,15 +529,15 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Должность',
+                decoration: InputDecoration(
+                  labelText: 'Должность',
                   focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
+                      borderSide: BorderSide(color: Colors.brown, width: 1.5)),
                   labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.w400),),
+                      fontWeight: FontWeight.w400),
+                ),
                 onSaved: (value) {
                   if (value != null) {
                     _scientist?.jobTitle = value;
@@ -521,15 +545,15 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Тип трудовых отношений',
+                decoration: InputDecoration(
+                  labelText: 'Тип трудовых отношений',
                   focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
+                      borderSide: BorderSide(color: Colors.brown, width: 1.5)),
                   labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.w400),),
+                      fontWeight: FontWeight.w400),
+                ),
                 onSaved: (value) {
                   if (value != null) {
                     _scientist?.relations = value;
@@ -537,28 +561,30 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Научная степень',
+                decoration: InputDecoration(
+                  labelText: 'Научная степень',
                   focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.brown,
-                          width: 1.5)),
+                      borderSide: BorderSide(color: Colors.brown, width: 1.5)),
                   labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.w400),),
+                      fontWeight: FontWeight.w400),
+                ),
                 onSaved: (value) {
                   if (value != null) {
                     _scientist?.scienceTitle = value;
                   }
                 },
               ),
-              SizedBox(height: 20,),
+              SizedBox(
+                height: 20,
+              ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.brown, // Background color
-                  onPrimary: Colors.white, // Text color
+                  primary: Colors.brown,
+                  onPrimary: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Rounded corners
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 onPressed: _registerScientist,
@@ -571,5 +597,3 @@ class _ScientistRegistrationScreenState extends State<ScientistRegistrationScree
     );
   }
 }
-
-

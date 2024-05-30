@@ -2,9 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:proj/log.dart';
+import 'log.dart';
 import 'dart:convert';
-import 'menu.dart'; // Ensure this is correctly imported based on your project structure
+import 'main.dart';
+import 'menu.dart';
 
 void main() => runApp(const Upload());
 
@@ -64,7 +65,7 @@ class Upload extends StatelessWidget {
               opacity: 0.0,
               child: IconButton(
                 icon: Icon(Icons.arrow_back_sharp),
-                onPressed: null, // Invisible placeholder button
+                onPressed: null,
               )),Spacer(),],),
                 const SizedBox(height: 20),
                 Expanded(
@@ -105,7 +106,7 @@ class MyCustomFormState extends State<MyCustomForm> {
   final TextEditingController _bibtextController = TextEditingController();
 
   Future<void> uploadBibText(String bibtex, String username) async {
-    final url = Uri.parse('http://127.0.0.1:8000/upload-bibtex/');
+    final url = Uri.parse('$baseUrl/bibtex/upload/');
     try {
       final response = await http.post(
         url,
@@ -115,6 +116,7 @@ class MyCustomFormState extends State<MyCustomForm> {
         }),
         headers: {
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning':'true'
         },
       );
 
@@ -271,9 +273,9 @@ class MyCustomFormState extends State<MyCustomForm> {
                 height: 45,
 
                 onPressed: () {
-                  // Correctly retrieve text from the controller
+
                   String bibtexText = _bibtextController.text;
-                  // This should be dynamically set or retrieved
+
                   uploadBibText(bibtexText, username);
                 },
                 padding: EdgeInsets.symmetric(

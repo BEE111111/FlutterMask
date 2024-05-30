@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:proj/log.dart';
 
+import 'log.dart';
 import 'menu.dart';
-
+String baseUrl = 'https://129a-37-45-218-86.ngrok-free.app';
 void main() => runApp(new MaterialApp(
   home: new RegisterLoginPage(),
 ));

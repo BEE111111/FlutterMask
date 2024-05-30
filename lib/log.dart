@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:proj/upload.dart';
 
+import 'main.dart';
 import 'menu.dart';
 String username = "";
 class RegisterLoginPage extends StatefulWidget {
@@ -13,20 +13,21 @@ class RegisterLoginPage extends StatefulWidget {
 class _RegisterLoginPageState extends State<RegisterLoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool playAreas = false; // False for Register, True for Login
+  bool playAreas = false;
 
   Future<void> _submit() async {
     username = _usernameController.text.trim();
     final String password = _passwordController.text.trim();
     final String url = playAreas
-        ? 'http://127.0.0.1:8000/login/'
-        : 'http://127.0.0.1:8000/register/';
+        ? '$baseUrl/login/'
+        : '$baseUrl/register/';
 
     try {
       final http.Response response = await http.post(
         Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
+          'ngrok-skip-browser-warning':'true'
         },
         body: jsonEncode({
           'username': username,
@@ -36,14 +37,6 @@ class _RegisterLoginPageState extends State<RegisterLoginPage> {
 
       if (playAreas && response.statusCode == 200) {
         print('User logged in successfully');
-        // Handle successful login, e.g., navigate to another screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MyCustomForm(),
-          ),
-        );
-
         Navigator.push(context,
             MaterialPageRoute(
                 builder: (context) => Menu()));
@@ -51,7 +44,7 @@ class _RegisterLoginPageState extends State<RegisterLoginPage> {
         print('User registered successfully');
         _usernameController.clear();
         _passwordController.clear();
-        // Handle successful registration, e.g., show success message
+
       } else {
         showDialog(
               context: context,
@@ -60,31 +53,31 @@ class _RegisterLoginPageState extends State<RegisterLoginPage> {
                   title: Text(
                     playAreas ? 'Ошибка входа.' : 'Ошибка регистрации.',
                     style: TextStyle(
-                      color: Colors.brown, // Set the color of title text to brown
+                      color: Colors.brown,
                     ),
                   ),
-                  content: SingleChildScrollView( // Use SingleChildScrollView for larger content
+                  content: SingleChildScrollView(
                     child: ListBody(
                       children: <Widget>[
                         Text(
                           'Не удалось ${playAreas ? 'войти' : 'зарегистрироваться'}.',
                           style: TextStyle(
-                            color: Colors.brown, // Set the color of content text to brown
+                            color: Colors.brown,
                           ),
                         ),
-                        // Add more Widgets here if you want to increase the content
+
                       ],
                     ),
                   ),
                   actions: <Widget>[
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text('OK', style: TextStyle(color: Colors.brown)), // Set the color of button text to brown
+                      child: Text('OK', style: TextStyle(color: Colors.brown)),
                     ),
                   ],
-                  backgroundColor: Colors.brown[50], // Set the background color of the dialog
+                  backgroundColor: Colors.brown[50],
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10)), // Rounded corners for the dialog
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                 );
               }

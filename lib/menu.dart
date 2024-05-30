@@ -1,16 +1,15 @@
 import 'dart:html';
 
 import 'package:flutter/material.dart';
+import 'package:untitled/instruction.dart';
+import 'package:untitled/settings.dart';
+import 'package:untitled/upload.dart';
+import 'package:untitled/usercab.dart';
 
-import 'package:proj/main.dart';
-import 'package:proj/myworks.dart';
-import 'package:proj/settings.dart';
-import 'package:proj/token.dart';
-import 'package:proj/upload.dart';
-import 'package:proj/usercab.dart';
+
 import 'allworks.dart';
-import 'form.dart';
 import 'log.dart';
+import 'myworks.dart';
 
 class Menu extends StatefulWidget {
   @override
@@ -69,9 +68,7 @@ class NavDrawer extends StatelessWidget {
             ),
             decoration: BoxDecoration(
                 color: Colors.brown[300],
-                image: DecorationImage(
-                    fit: BoxFit.fill,
-                    image: AssetImage('assets/images/cover.jpg'))),
+                ),
           ),
           ListTile(
             leading: Icon(Icons.list_alt_sharp),
@@ -106,6 +103,17 @@ class NavDrawer extends StatelessWidget {
             onTap: () => {Navigator.push(context,
             MaterialPageRoute(
             builder: (context) => SettingsScreen(username: '${username}',)))},
+          ),
+          ListTile(
+            leading: Icon(Icons.live_help_sharp),
+            title: Text('Инструкция', style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.brown,
+            ),),
+            onTap: () => {Navigator.push(context,
+                MaterialPageRoute(
+                    builder: (context) => Instruction()))},
           ),
           ListTile(
             leading: Icon(Icons.border_color_sharp),
